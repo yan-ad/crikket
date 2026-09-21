@@ -120,26 +120,6 @@ jobs:
           path: release-assets/*
           if-no-files-found: error
 
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.release.outputs.tag }}
-          VERSION: ${{ steps.release.outputs.version }}
-        run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" release-assets/* --clobber
-          elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            gh release create "$TAG" release-assets/* \
-              --verify-tag \
-              --generate-notes \
-              --title "Crikket Community Extension v${VERSION}"
-          else
-            gh release create "$TAG" release-assets/* \
-              --target "$GITHUB_SHA" \
-              --generate-notes \
-              --title "Crikket Community Extension v${VERSION}"
-          fi
-
   package-safari-app:
     name: Build unsigned Safari app
     needs: package
@@ -232,8 +212,41 @@ jobs:
           path: safari-release-assets/*
           if-no-files-found: error
 
-      - name: Upload Safari assets to GitHub release
+  publish-release:
+    name: Publish GitHub release
+    needs:
+      - package
+      - package-safari-app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download browser extension artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: browser-extension-${{ needs.package.outputs.version }}
+          path: release-assets
+
+      - name: Download Safari app artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: safari-app-${{ needs.package.outputs.version }}
+          path: release-assets
+
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.package.outputs.tag }}
-        run: gh release upload "$TAG" safari-release-assets/* --clobber
+          VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release-assets/* --clobber
+          elif [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            gh release create "$TAG" release-assets/* \
+              --verify-tag \
+              --generate-notes \
+              --title "Crikket Community Extension v${VERSION}"
+          else
+            gh release create "$TAG" release-assets/* \
+              --target "$GITHUB_SHA" \
+              --generate-notes \
+              --title "Crikket Community Extension v${VERSION}"
