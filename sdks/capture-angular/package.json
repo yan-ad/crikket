@@ -1,6 +1,6 @@
 {
   "name": "@crikket-io/capture-angular",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Angular integration for the Crikket browser capture SDK. Provides provideCrikket(), CrikketModule and an injectable CrikketService that lazy-loads @crikket-io/capture (SSR-safe).",
   "license": "AGPL-3.0-only",
   "homepage": "https://github.com/yan-ad/crikket/tree/master/sdks/capture-angular",
@@ -33,7 +33,7 @@
   "peerDependencies": {
     "@angular/common": ">=16.0.0 <21.0.0",
     "@angular/core": ">=16.0.0 <21.0.0",
-    "@crikket-io/capture": ">=0.1.1",
+    "@crikket-io/capture": ">=0.2.0",
     "react": ">=18",
     "react-dom": ">=18",
     "rxjs": ">=7.0.0"
