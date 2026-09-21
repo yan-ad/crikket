@@ -21,7 +21,10 @@ The `Release browser extensions` workflow creates a GitHub Release containing:
 - `crikket-community-<version>-firefox.zip`
 - `crikket-community-<version>-firefox-sources.zip`
 - `crikket-community-<version>-safari-webextension.zip`
+- `crikket-community-<version>-safari-unsigned-app.zip`
+- `crikket-community-<version>-safari-xcode-project.zip`
 - `SHA256SUMS.txt`
+- `SAFARI-SHA256SUMS.txt`
 
 The workflow derives the manifest version from the tag and requires a stable
 three-part numeric version. Do not include another leading `v` after the
@@ -32,6 +35,7 @@ The following optional GitHub repository variables customize the fork flavor:
 - `EXTENSION_FLAVOR` — artifact filename prefix
 - `EXTENSION_NAME` and `EXTENSION_SHORT_NAME` — browser-visible names
 - `FIREFOX_EXTENSION_ID` — stable AMO add-on ID
+- `SAFARI_APP_NAME` and `SAFARI_BUNDLE_IDENTIFIER` — native wrapper identity
 - `EXTENSION_APP_URL` and `EXTENSION_SERVER_URL` — production endpoints
 
 ## Installation notes
@@ -42,9 +46,11 @@ The following optional GitHub repository variables customize the fork flavor:
   and full-monorepo source ZIP to AMO, or use the signing command documented in
   `README.md`. The default community flavor uses add-on ID
   `crikket-community@yan-ad.github.io`.
-- **Safari:** the ZIP contains Safari WebExtension assets, not a signed app.
-  Convert it with Xcode, select an Apple Development team, then distribute the
-  containing macOS/iOS app through Apple-supported channels.
+- **Safari:** the workflow also builds an unsigned macOS `.app` and uploads the
+  generated Xcode project. The unsigned app is only for local testing after
+  enabling Safari's **Develop → Allow Unsigned Extensions** option. Normal
+  distribution still requires Apple certificates, notarization/App Store
+  Connect, and an Apple Developer Program membership.
 
 ## Manual release
 

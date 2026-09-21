@@ -79,3 +79,12 @@ The generated project is written to `.output/safari-xcode`. Open it in Xcode,
 choose an Apple Development team, and run the macOS app. Then enable Crikket in
 Safari under **Settings → Extensions**. App Store distribution requires an
 Apple Developer Program membership and Apple review.
+
+Tagged GitHub releases also build an unsigned macOS app on a macOS Actions
+runner. To test it, extract the app, enable **Develop → Allow Unsigned
+Extensions** in Safari, launch the app, and enable the extension in Safari
+Settings. macOS may require removing the downloaded quarantine attribute:
+
+```bash
+xattr -dr com.apple.quarantine "Crikket Community.app"
+```

@@ -23,6 +23,8 @@ env:
   EXTENSION_NAME: ${{ vars.EXTENSION_NAME || 'Crikket Community' }}
   EXTENSION_SHORT_NAME: ${{ vars.EXTENSION_SHORT_NAME || 'Crikket CE' }}
   FIREFOX_EXTENSION_ID: ${{ vars.FIREFOX_EXTENSION_ID || 'crikket-community@yan-ad.github.io' }}
+  SAFARI_APP_NAME: ${{ vars.SAFARI_APP_NAME || 'Crikket Community' }}
+  SAFARI_BUNDLE_IDENTIFIER: ${{ vars.SAFARI_BUNDLE_IDENTIFIER || 'io.github.yan-ad.crikket-community' }}
   VITE_APP_URL: ${{ vars.EXTENSION_APP_URL || 'https://app.crikket.io' }}
   VITE_SERVER_URL: ${{ vars.EXTENSION_SERVER_URL || 'https://api.crikket.io' }}
 
@@ -30,6 +32,9 @@ jobs:
   package:
     name: Build extension packages
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
 
     steps:
       - name: Checkout
@@ -134,3 +139,101 @@ jobs:
               --generate-notes \
               --title "Crikket Community Extension v${VERSION}"
           fi
+
+  package-safari-app:
+    name: Build unsigned Safari app
+    needs: package
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Set extension version
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          bun -e '
+            const path = "apps/extension/package.json";
+            const pkg = await Bun.file(path).json();
+            pkg.version = process.env.VERSION;
+            await Bun.write(path, `${JSON.stringify(pkg, null, 2)}\n`);
+          '
+
+      - name: Generate Safari Xcode project
+        run: bun run --filter extension package:safari
+
+      - name: Build unsigned macOS app
+        id: safari
+        run: |
+          PROJECT="$(find apps/extension/.output/safari-xcode -name '*.xcodeproj' -print -quit)"
+          if [ -z "$PROJECT" ]; then
+            echo "Safari Xcode project was not generated" >&2
+            exit 1
+          fi
+
+          SCHEME="$(xcodebuild -project "$PROJECT" -list -json | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          schemes = data.get("project", {}).get("schemes", [])
+          preferred = next((scheme for scheme in schemes if "macOS" in scheme), None)
+          if not preferred and schemes:
+              preferred = schemes[0]
+          if not preferred:
+              raise SystemExit("No Xcode scheme found")
+          print(preferred)
+          ')"
+
+          xcodebuild \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -derivedDataPath "$RUNNER_TEMP/safari-derived-data" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+          APP="$(find "$RUNNER_TEMP/safari-derived-data/Build/Products/Release" -maxdepth 1 -name '*.app' -print -quit)"
+          if [ -z "$APP" ]; then
+            echo "Unsigned Safari app was not produced" >&2
+            exit 1
+          fi
+
+          echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
+          echo "app=$APP" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare Safari app artifacts
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          mkdir -p safari-release-assets
+          ditto -c -k --sequesterRsrc --keepParent \
+            "${{ steps.safari.outputs.app }}" \
+            "safari-release-assets/${EXTENSION_FLAVOR}-${VERSION}-safari-unsigned-app.zip"
+          ditto -c -k --sequesterRsrc --keepParent \
+            apps/extension/.output/safari-xcode \
+            "safari-release-assets/${EXTENSION_FLAVOR}-${VERSION}-safari-xcode-project.zip"
+          shasum -a 256 safari-release-assets/*.zip \
+            > safari-release-assets/SAFARI-SHA256SUMS.txt
+
+      - name: Upload Safari workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: safari-app-${{ needs.package.outputs.version }}
+          path: safari-release-assets/*
+          if-no-files-found: error
+
+      - name: Upload Safari assets to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.package.outputs.tag }}
+        run: gh release upload "$TAG" safari-release-assets/* --clobber
