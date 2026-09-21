@@ -4,41 +4,37 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
     "./debugger/constants": {
-      "types": "./dist/debugger/constants.d.ts",
-      "default": "./dist/debugger/constants.js"
+      "types": "./src/debugger/constants.ts",
+      "default": "./src/debugger/constants.ts"
     },
     "./debugger/types": {
-      "types": "./dist/debugger/types.d.ts",
-      "default": "./dist/debugger/types.js"
+      "types": "./src/debugger/types.ts",
+      "default": "./src/debugger/types.ts"
     },
     "./debugger/normalize": {
-      "types": "./dist/debugger/normalize.d.ts",
-      "default": "./dist/debugger/normalize.js"
+      "types": "./src/debugger/normalize.ts",
+      "default": "./src/debugger/normalize.ts"
     },
     "./debugger/payload": {
-      "types": "./dist/debugger/payload.d.ts",
-      "default": "./dist/debugger/payload.js"
+      "types": "./src/debugger/payload.ts",
+      "default": "./src/debugger/payload.ts"
     },
     "./debugger/recorder-session": {
-      "types": "./dist/debugger/recorder-session.d.ts",
-      "default": "./dist/debugger/recorder-session.js"
+      "types": "./src/debugger/recorder-session.ts",
+      "default": "./src/debugger/recorder-session.ts"
     },
     "./debugger/engine/background/retention": {
-      "types": "./dist/debugger/engine/background/retention.d.ts",
-      "default": "./dist/debugger/engine/background/retention.js"
+      "types": "./src/debugger/engine/background/retention.ts",
+      "default": "./src/debugger/engine/background/retention.ts"
     },
     "./debugger/engine/page": {
-      "types": "./dist/debugger/engine/page/index.d.ts",
-      "default": "./dist/debugger/engine/page/index.js"
+      "types": "./src/debugger/engine/page/index.ts",
+      "default": "./src/debugger/engine/page/index.ts"
     },
     "./debugger/engine/page/types": {
-      "types": "./dist/debugger/engine/page/types.d.ts",
-      "default": "./dist/debugger/engine/page/types.js"
+      "types": "./src/debugger/engine/page/types.ts",
+      "default": "./src/debugger/engine/page/types.ts"
     },
     "./upload/client": {
       "types": "./src/upload/client.ts",

@@ -41,9 +41,18 @@ export function useScreenCapture(): UseScreenCaptureReturn {
 
       streamRef.current = stream
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "video/webm;codecs=vp9",
-      })
+      const preferredMimeTypes = [
+        "video/webm;codecs=vp9",
+        "video/webm;codecs=vp8",
+        "video/webm",
+      ]
+      const mimeType = preferredMimeTypes.find((type) =>
+        MediaRecorder.isTypeSupported(type)
+      )
+      const mediaRecorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined
+      )
 
       mediaRecorderRef.current = mediaRecorder
       chunksRef.current = []
@@ -55,7 +64,9 @@ export function useScreenCapture(): UseScreenCaptureReturn {
       }
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "video/webm" })
+        const blob = new Blob(chunksRef.current, {
+          type: mediaRecorder.mimeType || "video/webm",
+        })
         setRecordedBlob(blob)
         setIsRecording(false)
 
@@ -92,7 +103,9 @@ export function useScreenCapture(): UseScreenCaptureReturn {
       }
 
       mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "video/webm" })
+        const blob = new Blob(chunksRef.current, {
+          type: mediaRecorderRef.current?.mimeType || "video/webm",
+        })
         setRecordedBlob(blob)
         setIsRecording(false)
 
