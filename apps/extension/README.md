@@ -1,5 +1,8 @@
 # WXT + React
 
+Release tagging and generated browser artifacts are documented in
+[`RELEASE.md`](./RELEASE.md).
+
 ## Development
 
 ```bash

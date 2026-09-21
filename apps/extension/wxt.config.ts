@@ -5,14 +5,18 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: ({ browser }) => {
     const supportsTabCapture = browser !== "firefox" && browser !== "safari"
+    const extensionName = process.env.EXTENSION_NAME ?? "Crikket"
+    const extensionShortName = process.env.EXTENSION_SHORT_NAME ?? "Crikket"
+    const firefoxExtensionId =
+      process.env.FIREFOX_EXTENSION_ID ?? "extension@crikket.io"
 
     return {
-      name: "Crikket",
+      name: extensionName,
       description:
         "Capture screenshots, recordings, and debugging context for bug reports.",
-      short_name: "Crikket",
+      short_name: extensionShortName,
       action: {
-        default_title: "Crikket",
+        default_title: extensionName,
         default_popup: "popup.html",
       },
       ...(browser === "safari"
@@ -54,7 +58,7 @@ export default defineConfig({
         ? {
             browser_specific_settings: {
               gecko: {
-                id: "extension@crikket.io",
+                id: firefoxExtensionId,
                 strict_min_version: "142.0",
                 data_collection_permissions: {
                   required: [
