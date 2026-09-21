@@ -16,6 +16,7 @@ import {
 } from "@crikket/ui/components/ui/card"
 import { AlertCircle } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { CapturePermissionStep } from "@/components/capture-permission-step"
 import { FormStep } from "@/components/form-step"
 import { RecordingStep } from "@/components/recording-step"
 import { SuccessStep } from "@/components/success-step"
@@ -50,6 +51,31 @@ interface DebuggerSubmissionInput {
   payload: BugReportDebuggerPayload | undefined
   summary: DebuggerCaptureSummary
   warnings: string[]
+}
+
+function IdleCaptureStep({
+  debuggerSessionId,
+  captureType,
+  onStartCapture,
+}: {
+  debuggerSessionId: string | null
+  captureType: CaptureType
+  onStartCapture: () => void
+}) {
+  const needsFirefoxCapturePermission =
+    import.meta.env.FIREFOX &&
+    captureType === "video" &&
+    Boolean(debuggerSessionId)
+
+  if (needsFirefoxCapturePermission) {
+    return <CapturePermissionStep onStartCapture={onStartCapture} />
+  }
+
+  return (
+    <p className="text-center text-muted-foreground">
+      No active capture. Start from the extension popup.
+    </p>
+  )
 }
 
 function App() {
@@ -366,7 +392,6 @@ function App() {
   }, [activeBlob])
 
   const error = captureError || submitError
-
   useEffect(() => {
     if (state === "recording") {
       document.title = `Recording ${formatDuration(duration)} - Crikket`
@@ -399,9 +424,11 @@ function App() {
           ) : null}
 
           {state === "idle" ? (
-            <p className="text-center text-muted-foreground">
-              No active capture. Start from the extension popup.
-            </p>
+            <IdleCaptureStep
+              captureType={captureType}
+              debuggerSessionId={debuggerSessionId}
+              onStartCapture={handleStartCapture}
+            />
           ) : null}
 
           {state === "recording" ? (

@@ -179,6 +179,34 @@ async function startVideoCapture(input: {
   debuggerSessionId: string
   setRecordingCountdown: (value: number | null) => void
 }): Promise<void> {
+  if (import.meta.env.FIREFOX) {
+    await chrome.storage.local.set({
+      [CAPTURE_CONTEXT_STORAGE_KEY]: input.captureContext,
+      [CAPTURE_TAB_ID_STORAGE_KEY]: input.activeTab.id,
+      [RECORDING_IN_PROGRESS_STORAGE_KEY]: false,
+    })
+    await chrome.storage.local.remove([
+      RECORDING_COUNTDOWN_ENDS_AT_STORAGE_KEY,
+      RECORDING_STARTED_AT_STORAGE_KEY,
+    ])
+
+    const recorderUrl = appendDebuggerSessionIdToUrl(
+      chrome.runtime.getURL("/recorder.html?captureType=video"),
+      input.debuggerSessionId
+    )
+    const recorderTab = await chrome.tabs.create({
+      active: true,
+      url: recorderUrl,
+    })
+
+    if (typeof recorderTab.id === "number") {
+      await chrome.storage.local.set({
+        [RECORDER_TAB_ID_STORAGE_KEY]: recorderTab.id,
+      })
+    }
+    return
+  }
+
   const countdownEndsAt = Date.now() + RECORDING_COUNTDOWN_SECONDS * 1000
 
   await chrome.storage.local.set({

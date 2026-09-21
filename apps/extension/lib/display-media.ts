@@ -8,6 +8,13 @@ interface TabCaptureConstraints extends MediaTrackConstraints {
 export const requestTabCaptureStream = async (
   tabId: number
 ): Promise<MediaStream> => {
+  if (import.meta.env.FIREFOX) {
+    return navigator.mediaDevices.getDisplayMedia({
+      audio: false,
+      video: true,
+    })
+  }
+
   const streamId = await chrome.tabCapture.getMediaStreamId({
     targetTabId: tabId,
   })

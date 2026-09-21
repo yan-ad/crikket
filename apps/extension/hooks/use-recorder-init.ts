@@ -37,7 +37,7 @@ export function useRecorderInit({
             })
         }
       })
-    } else if (type === "video") {
+    } else if (type === "video" && !import.meta.env.FIREFOX) {
       if (autoStartChecked.current) return
       autoStartChecked.current = true
 

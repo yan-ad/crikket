@@ -85,8 +85,9 @@ function App() {
 
         <div className="rounded-md border bg-muted p-3">
           <p className="text-muted-foreground text-xs leading-relaxed">
-            We only capture your current browser tab. A new tab will open for
-            you to review and submit your report.
+            {import.meta.env.FIREFOX
+              ? "Screenshots capture the current tab. For video, Firefox asks you to choose a window or screen."
+              : "We only capture your current browser tab. A new tab will open for you to review and submit your report."}
           </p>
         </div>
 
@@ -94,11 +95,20 @@ function App() {
           className="justify-start text-muted-foreground"
           onClick={async () => {
             try {
-              await chrome.tabs.create({ url: "chrome://extensions/shortcuts" })
+              if (import.meta.env.FIREFOX) {
+                const commands = chrome.commands as typeof chrome.commands & {
+                  openShortcutSettings?: () => Promise<void>
+                }
+                await commands.openShortcutSettings?.()
+              } else {
+                await chrome.tabs.create({
+                  url: "chrome://extensions/shortcuts",
+                })
+              }
               window.close()
             } catch (error: unknown) {
               reportNonFatalError(
-                "Failed to open Chrome extension shortcuts settings",
+                "Failed to open extension shortcuts settings",
                 error
               )
             }

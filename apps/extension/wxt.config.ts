@@ -3,8 +3,10 @@ import { defineConfig } from "wxt"
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
-  manifest: {
+  manifest: ({ browser }) => ({
     name: "Crikket",
+    description:
+      "Capture screenshots, recordings, and debugging context for bug reports.",
     short_name: "Crikket",
     action: {
       default_title: "Crikket",
@@ -33,7 +35,30 @@ export default defineConfig({
         },
       },
     },
-    permissions: ["activeTab", "scripting", "storage", "tabCapture", "tabs"],
+    permissions: [
+      "activeTab",
+      "scripting",
+      "storage",
+      "tabs",
+      ...(browser === "firefox" ? [] : ["tabCapture"]),
+    ],
     host_permissions: ["<all_urls>"],
-  },
+    ...(browser === "firefox"
+      ? {
+          browser_specific_settings: {
+            gecko: {
+              id: "extension@crikket.io",
+              strict_min_version: "142.0",
+              data_collection_permissions: {
+                required: [
+                  "browsingActivity",
+                  "websiteActivity",
+                  "websiteContent",
+                ],
+              },
+            },
+          },
+        }
+      : {}),
+  }),
 })
