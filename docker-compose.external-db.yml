@@ -1,6 +1,6 @@
 services:
   server:
-    image: ghcr.io/redpangilinan/crikket-server:latest
+    image: ghcr.io/yan-ad/crikket-server:latest
     pull_policy: always
     container_name: crikket-server
     restart: unless-stopped
@@ -28,7 +28,7 @@ services:
       retries: 12
 
   migrate:
-    image: ghcr.io/redpangilinan/crikket-server:latest
+    image: ghcr.io/yan-ad/crikket-server:latest
     pull_policy: always
     restart: "no"
     env_file:
@@ -38,7 +38,7 @@ services:
     command: ["bun", "run", "--filter", "@crikket/db", "db:migrate"]
 
   web:
-    image: ghcr.io/redpangilinan/crikket-web:latest
+    image: ghcr.io/yan-ad/crikket-web:latest
     pull_policy: always
     container_name: crikket-web
     restart: unless-stopped
