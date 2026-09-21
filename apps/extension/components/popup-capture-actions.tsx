@@ -106,8 +106,9 @@ export function PopupCaptureActions({
       {pendingCaptureType ? (
         <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 p-3">
           <p className="text-sm">
-            {import.meta.env.FIREFOX && pendingCaptureType === "video"
-              ? "Continue to choose the Firefox window or screen you want to record?"
+            {(import.meta.env.FIREFOX || import.meta.env.SAFARI) &&
+            pendingCaptureType === "video"
+              ? "Continue to choose the browser window or screen you want to record?"
               : `Allow Crikket to capture your current tab for ${pendingCaptureType === "video" ? "recording" : "screenshot"}?`}
           </p>
           <div className="flex gap-2">

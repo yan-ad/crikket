@@ -13,8 +13,8 @@ export function CapturePermissionStep({
       <div className="space-y-2">
         <h2 className="font-semibold text-lg">Choose what to record</h2>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          Firefox will ask you to choose a window or screen. Select the browser
-          window where you want to reproduce the issue.
+          Your browser will ask you to choose a window or screen. Select the
+          browser window where you want to reproduce the issue.
         </p>
       </div>
       <Button className="gap-2" onClick={onStartCapture} size="lg">

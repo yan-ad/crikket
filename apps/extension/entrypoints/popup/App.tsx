@@ -85,40 +85,42 @@ function App() {
 
         <div className="rounded-md border bg-muted p-3">
           <p className="text-muted-foreground text-xs leading-relaxed">
-            {import.meta.env.FIREFOX
-              ? "Screenshots capture the current tab. For video, Firefox asks you to choose a window or screen."
+            {import.meta.env.FIREFOX || import.meta.env.SAFARI
+              ? "Screenshots capture the current tab. For video, your browser asks you to choose a window or screen."
               : "We only capture your current browser tab. A new tab will open for you to review and submit your report."}
           </p>
         </div>
 
-        <Button
-          className="justify-start text-muted-foreground"
-          onClick={async () => {
-            try {
-              if (import.meta.env.FIREFOX) {
-                const commands = chrome.commands as typeof chrome.commands & {
-                  openShortcutSettings?: () => Promise<void>
+        {import.meta.env.SAFARI ? null : (
+          <Button
+            className="justify-start text-muted-foreground"
+            onClick={async () => {
+              try {
+                if (import.meta.env.FIREFOX) {
+                  const commands = chrome.commands as typeof chrome.commands & {
+                    openShortcutSettings?: () => Promise<void>
+                  }
+                  await commands.openShortcutSettings?.()
+                } else {
+                  await chrome.tabs.create({
+                    url: "chrome://extensions/shortcuts",
+                  })
                 }
-                await commands.openShortcutSettings?.()
-              } else {
-                await chrome.tabs.create({
-                  url: "chrome://extensions/shortcuts",
-                })
+                window.close()
+              } catch (error: unknown) {
+                reportNonFatalError(
+                  "Failed to open extension shortcuts settings",
+                  error
+                )
               }
-              window.close()
-            } catch (error: unknown) {
-              reportNonFatalError(
-                "Failed to open extension shortcuts settings",
-                error
-              )
-            }
-          }}
-          size="sm"
-          variant="ghost"
-        >
-          <Keyboard />
-          Keyboard shortcuts
-        </Button>
+            }}
+            size="sm"
+            variant="ghost"
+          >
+            <Keyboard />
+            Keyboard shortcuts
+          </Button>
+        )}
       </div>
     </div>
   )

@@ -179,7 +179,7 @@ async function startVideoCapture(input: {
   debuggerSessionId: string
   setRecordingCountdown: (value: number | null) => void
 }): Promise<void> {
-  if (import.meta.env.FIREFOX) {
+  if (import.meta.env.FIREFOX || import.meta.env.SAFARI) {
     await chrome.storage.local.set({
       [CAPTURE_CONTEXT_STORAGE_KEY]: input.captureContext,
       [CAPTURE_TAB_ID_STORAGE_KEY]: input.activeTab.id,

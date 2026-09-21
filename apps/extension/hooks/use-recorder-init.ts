@@ -37,7 +37,10 @@ export function useRecorderInit({
             })
         }
       })
-    } else if (type === "video" && !import.meta.env.FIREFOX) {
+    } else if (
+      type === "video" &&
+      !(import.meta.env.FIREFOX || import.meta.env.SAFARI)
+    ) {
       if (autoStartChecked.current) return
       autoStartChecked.current = true
 
