@@ -19,6 +19,7 @@ import type { CaptureReviewSubmitOptions, MountedCaptureUi } from "../ui/types"
 import {
   normalizeHost,
   normalizeKey,
+  normalizeLauncherPlacement,
   normalizeSubmitPath,
   normalizeZIndex,
 } from "../utils"
@@ -32,6 +33,10 @@ export class CaptureSdkRuntime implements CaptureRuntimeController {
   private activeRecording: RecordingController | null = null
   private currentMedia: CapturedMedia | null = null
   private currentReview: ReviewSnapshot | null = null
+  private onOpen: (() => void) | undefined
+  private onClose: (() => void) | undefined
+  private storeUnsubscribe: (() => void) | null = null
+  private lastOverlayOpen = false
 
   init(options: CaptureInitOptions): CaptureRuntimeController {
     const config: CaptureRuntimeConfig = {
@@ -39,10 +44,13 @@ export class CaptureSdkRuntime implements CaptureRuntimeController {
       host: normalizeHost(options.host),
       submitPath: normalizeSubmitPath(options.submitPath),
       zIndex: normalizeZIndex(options.zIndex),
+      launcher: normalizeLauncherPlacement(options.launcher),
     }
 
     this.runtimeConfig = config
     this.submitTransport = options.submitTransport
+    this.onOpen = options.onOpen
+    this.onClose = options.onClose
 
     if (options.autoMount ?? true) {
       this.mount(options.mountTarget)
@@ -59,6 +67,10 @@ export class CaptureSdkRuntime implements CaptureRuntimeController {
     return this.runtimeConfig !== null
   }
 
+  isOpen(): boolean {
+    return this.mountedUi?.store.getSnapshot()?.overlayOpen ?? false
+  }
+
   getConfig(): CaptureRuntimeConfig | null {
     return this.runtimeConfig
   }
@@ -72,45 +84,54 @@ export class CaptureSdkRuntime implements CaptureRuntimeController {
     }
 
     const mountTarget = target ?? document.body
-    this.mountedUi = mountCaptureUi(mountTarget, config.zIndex, {
-      onClose: () => {
-        this.close()
-      },
-      onStartVideo: () => {
-        return this.startRecording()
-      },
-      onTakeScreenshot: async () => {
-        const blob = await this.takeScreenshot()
-        if (!blob) {
-          throw new Error("Screenshot capture failed.")
-        }
-      },
-      onStopRecording: async () => {
-        if (this.activeRecording) {
-          const blob = await this.stopRecording()
-          if (!blob) {
-            throw new Error("Recording capture failed.")
-          }
-        } else {
+    this.mountedUi = mountCaptureUi(
+      mountTarget,
+      config.zIndex,
+      {
+        onClose: () => {
+          this.close()
+        },
+        onStartVideo: () => {
+          return this.startRecording()
+        },
+        onTakeScreenshot: async () => {
           const blob = await this.takeScreenshot()
           if (!blob) {
             throw new Error("Screenshot capture failed.")
           }
-        }
+        },
+        onStopRecording: async () => {
+          if (this.activeRecording) {
+            const blob = await this.stopRecording()
+            if (!blob) {
+              throw new Error("Recording capture failed.")
+            }
+          } else {
+            const blob = await this.takeScreenshot()
+            if (!blob) {
+              throw new Error("Screenshot capture failed.")
+            }
+          }
+        },
+        onSubmit: (draft, options) => {
+          return this.submit(draft, options).then(() => undefined)
+        },
+        onReset: () => {
+          this.reset()
+        },
       },
-      onSubmit: (draft, options) => {
-        return this.submit(draft, options).then(() => undefined)
-      },
-      onReset: () => {
-        this.reset()
-      },
-    })
+      config.launcher
+    )
     this.mountedTarget = mountTarget
+    this.subscribeToOverlayState()
   }
 
   unmount(): void {
     this.abortActiveRecording()
     this.setUiHidden(false)
+    this.storeUnsubscribe?.()
+    this.storeUnsubscribe = null
+    this.lastOverlayOpen = false
     this.mountedUi?.unmount()
     this.mountedUi = null
     this.debuggerCollector.dispose()
@@ -149,6 +170,10 @@ export class CaptureSdkRuntime implements CaptureRuntimeController {
       const controller = await startDisplayRecording()
       this.debuggerCollector.markRecordingStarted(controller.startedAt)
       this.activeRecording = controller
+      // Recording is live: reveal the UI host again so the recording dock (and
+      // its Stop control) is reachable. hideUiForCapture only needs to hide the
+      // widget while the picker opens and the first frames settle.
+      this.setUiHidden(false)
       controller.finished
         .then(async (result) => {
           if (this.activeRecording !== controller) {
@@ -343,6 +368,28 @@ export class CaptureSdkRuntime implements CaptureRuntimeController {
         }
       })
       .catch(() => undefined)
+  }
+
+  private subscribeToOverlayState(): void {
+    const store = this.mountedUi?.store
+    if (!(store && (this.onOpen || this.onClose))) {
+      return
+    }
+
+    this.lastOverlayOpen = store.getSnapshot()?.overlayOpen ?? false
+    this.storeUnsubscribe = store.subscribe(() => {
+      const isOverlayOpen = store.getSnapshot()?.overlayOpen ?? false
+      if (isOverlayOpen === this.lastOverlayOpen) {
+        return
+      }
+
+      this.lastOverlayOpen = isOverlayOpen
+      if (isOverlayOpen) {
+        this.onOpen?.()
+      } else {
+        this.onClose?.()
+      }
+    })
   }
 
   private getRuntimeConfig(): CaptureRuntimeConfig {
