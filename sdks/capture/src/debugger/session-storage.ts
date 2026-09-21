@@ -36,8 +36,7 @@ export function persistSession(session: DebuggerSession): void {
       savedAt: Date.now(),
     }
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
-  } catch {
-  }
+  } catch {}
 }
 
 export function loadPersistedSession(): RestoredSession | null {
@@ -115,6 +114,5 @@ export function loadPersistedSession(): RestoredSession | null {
 export function clearPersistedSession(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY)
-  } catch {
-  }
+  } catch {}
 }

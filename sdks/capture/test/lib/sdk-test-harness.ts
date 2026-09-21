@@ -257,7 +257,8 @@ mock.module(SESSION_STORAGE_PATH, () => ({
         Date.now() - record.savedAt > MAX_SESSION_AGE_MS ||
         typeof record.sessionId !== "string" ||
         !record.sessionId ||
-        (record.captureType !== "video" && record.captureType !== "screenshot") ||
+        (record.captureType !== "video" &&
+          record.captureType !== "screenshot") ||
         typeof record.startedAt !== "number"
       ) {
         sessionStorage.removeItem(STORAGE_KEY)
@@ -298,7 +299,11 @@ mock.module(SESSION_STORAGE_PATH, () => ({
     try {
       sessionStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ ...session, version: SESSION_VERSION, savedAt: Date.now() })
+        JSON.stringify({
+          ...session,
+          version: SESSION_VERSION,
+          savedAt: Date.now(),
+        })
       )
     } catch {}
   },
