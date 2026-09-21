@@ -5,7 +5,7 @@ extension depends on local `workspace:*` packages.
 
 ## Requirements
 
-- Bun 1.3.5
+- Bun 1.4.2
 - Node.js 22
 
 ## Rebuild the Firefox package
