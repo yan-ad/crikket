@@ -5,6 +5,10 @@ import { handleRecorderHotkeyCommand } from "@/lib/recorder-hotkey-commands"
 export default defineBackground(() => {
   registerDebuggerBackgroundListeners()
 
+  if (import.meta.env.SAFARI) {
+    return
+  }
+
   chrome.commands.onCommand.addListener((command) => {
     handleRecorderHotkeyCommand(command).catch(async (error: unknown) => {
       reportNonFatalError("Failed to execute recorder hotkey command", error)

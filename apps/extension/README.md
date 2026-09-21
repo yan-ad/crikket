@@ -11,6 +11,10 @@ Firefox uses Manifest V3 and opens a native capture picker for video because it
 does not provide Chromium's `tabCapture` API. Screenshots still capture the
 active tab directly.
 
+Safari uses the same native window/screen picker for video. Keyboard shortcut
+commands are omitted because Safari does not provide the same extension command
+management flow as Chrome and Firefox.
+
 ### Test an unsigned Firefox build
 
 Firefox Release and Beta reject unsigned ZIP/XPI files with a “not verified”
@@ -51,3 +55,24 @@ bun run --filter extension sign:firefox
 
 The command submits the build as an unlisted add-on and downloads the signed
 XPI into `.output/firefox-signed`. Keep both credentials out of source control.
+
+## Safari
+
+Build the Safari WebExtension assets:
+
+```bash
+bun run --filter extension build:safari
+```
+
+Safari extensions must be packaged inside a native app. Install full Xcode,
+select it as the active developer directory, then generate the project:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app
+bun run --filter extension package:safari
+```
+
+The generated project is written to `.output/safari-xcode`. Open it in Xcode,
+choose an Apple Development team, and run the macOS app. Then enable Crikket in
+Safari under **Settings → Extensions**. App Store distribution requires an
+Apple Developer Program membership and Apple review.

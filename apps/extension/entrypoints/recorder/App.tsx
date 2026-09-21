@@ -62,12 +62,12 @@ function IdleCaptureStep({
   captureType: CaptureType
   onStartCapture: () => void
 }) {
-  const needsFirefoxCapturePermission =
-    import.meta.env.FIREFOX &&
+  const needsDisplayCapturePermission =
+    (import.meta.env.FIREFOX || import.meta.env.SAFARI) &&
     captureType === "video" &&
     Boolean(debuggerSessionId)
 
-  if (needsFirefoxCapturePermission) {
+  if (needsDisplayCapturePermission) {
     return <CapturePermissionStep onStartCapture={onStartCapture} />
   }
 

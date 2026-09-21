@@ -7,13 +7,17 @@
   "scripts": {
     "dev": "wxt --port 5555",
     "dev:firefox": "wxt -b firefox --mv3",
+    "dev:safari": "wxt -b safari --mv3",
     "test:firefox": "bun run build:firefox && bunx --bun web-ext run --source-dir .output/firefox-mv3",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox --mv3",
+    "build:safari": "wxt build -b safari --mv3",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox --mv3",
+    "zip:safari": "wxt zip -b safari --mv3",
     "lint:firefox": "bun run build:firefox && bunx --bun web-ext lint --source-dir .output/firefox-mv3",
     "sign:firefox": "bun run build:firefox && bunx --bun web-ext sign --source-dir .output/firefox-mv3 --artifacts-dir .output/firefox-signed --channel unlisted --api-key $WEB_EXT_API_KEY --api-secret $WEB_EXT_API_SECRET",
+    "package:safari": "bun run build:safari && sh ./scripts/package-safari.sh",
     "check-types": "tsc --noEmit -p tsconfig.json",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare"

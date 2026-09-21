@@ -59,6 +59,10 @@ export function useCommandShortcuts(): CommandShortcuts {
   )
 
   useEffect(() => {
+    if (import.meta.env.SAFARI) {
+      return
+    }
+
     chrome.commands.getAll((commands) => {
       if (chrome.runtime.lastError) {
         setShortcuts(EMPTY_COMMAND_SHORTCUTS)
