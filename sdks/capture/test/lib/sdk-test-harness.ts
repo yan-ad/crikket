@@ -306,12 +306,16 @@ mock.module(SESSION_STORAGE_PATH, () => ({
           savedAt: Date.now(),
         })
       )
-    } catch {}
+    } catch {
+      // Some test environments do not expose a writable sessionStorage.
+    }
   },
   clearPersistedSession: () => {
     try {
       sessionStorage.removeItem(STORAGE_KEY)
-    } catch {}
+    } catch {
+      // Some test environments do not expose a writable sessionStorage.
+    }
   },
 }))
 
