@@ -27,3 +27,11 @@ xcrun "$PACKAGER" \
   --no-open \
   --no-prompt \
   --force
+
+PROJECT_FILE="$(find .output/safari-xcode -path '*.xcodeproj/project.pbxproj' -print -quit)"
+if [ -z "$PROJECT_FILE" ]; then
+  echo "Safari Xcode project file was not generated." >&2
+  exit 1
+fi
+
+bun ./scripts/normalize-safari-project.ts "$PROJECT_FILE" "$BUNDLE_IDENTIFIER"

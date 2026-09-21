@@ -52,6 +52,11 @@ The following optional GitHub repository variables customize the fork flavor:
   distribution still requires Apple certificates, notarization/App Store
   Connect, and an Apple Developer Program membership.
 
+The packaging script normalizes the generated app bundle ID to
+`SAFARI_BUNDLE_IDENTIFIER` and the embedded extension ID to
+`SAFARI_BUNDLE_IDENTIFIER.Extension`, as required by Xcode's embedded binary
+validation.
+
 ## Manual release
 
 The workflow can also be started from **Actions → Release browser extensions →
