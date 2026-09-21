@@ -1,13 +1,15 @@
 name: Publish Packages
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      confirm_publish:
+        description: "Type publish to release packages to npm"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -42,13 +44,30 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build SDK dependencies
-        run: bun x turbo run build --filter=@crikket/capture-core --filter=@crikket-io/capture
+        run: bun x turbo run build --filter=@crikket/capture-core --filter=@crikket-io/capture --filter=@crikket-io/capture-angular
 
-      - name: Validate package publish
+      - name: Validate capture package
         if: github.event_name == 'pull_request'
         working-directory: sdks/capture
-        run: npm publish --dry-run --access public
+        run: npm pack --dry-run
+
+      - name: Validate Angular package
+        if: github.event_name == 'pull_request'
+        working-directory: sdks/capture-angular
+        run: npm pack --dry-run
+
+      - name: Confirm npm publish
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          CONFIRM_PUBLISH: ${{ inputs.confirm_publish }}
+        run: |
+          if [ "$CONFIRM_PUBLISH" != "publish" ]; then
+            echo "Publishing cancelled: confirm_publish must equal 'publish'." >&2
+            exit 1
+          fi
 
       - name: Publish packages
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: bun run changeset:publish
